@@ -10,6 +10,7 @@ LOG.setLevel(logging.INFO)
 
 
 async def perform_request(session: aiohttp.ClientSession,
+                          i: int,
                           sem: asyncio.Semaphore,
                           url: str):
     t0 = time.time()
@@ -20,7 +21,8 @@ async def perform_request(session: aiohttp.ClientSession,
             while chunk:
                 chunk = await resp.content.read(1024*1024)
 
-            LOG.info("HTTP %d after %s seconds", resp.status, time.time() - t0)
+            delta = time.time() - t0
+            LOG.info("[%d] HTTP %d after %s seconds", i, resp.status, delta)
     finally:
         sem.release()
 
@@ -30,10 +32,13 @@ async def make_requests(url, k) -> None:
     sem = asyncio.Semaphore(k)
     loop = asyncio.get_event_loop()
 
+    i = 0
+
     async with aiohttp.ClientSession() as session:
         while True:
             await sem.acquire()
-            loop.create_task(perform_request(session, sem, url))
+            loop.create_task(perform_request(session, i, sem, url))
+            i += 1
 
 
 def main():
