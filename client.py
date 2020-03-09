@@ -28,12 +28,12 @@ async def perform_request(session: aiohttp.ClientSession,
 async def make_requests(url, k) -> None:
     LOG.info("Starting %d parallel requests to '%s'", k, url)
     sem = asyncio.Semaphore(k)
+    loop = asyncio.get_event_loop()
 
     async with aiohttp.ClientSession() as session:
         while True:
             await sem.acquire()
-            req = perform_request(session, sem, url)
-            asyncio.create_task(req)
+            loop.create_task(perform_request(session, sem, url))
 
 
 def main():
