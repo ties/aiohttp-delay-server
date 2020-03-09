@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import json
 import logging
+import math
 import random
 import time
 
@@ -21,7 +22,8 @@ async def delay_response(request):
     delay = random.expovariate(1/MEAN_DELAY)
 
     remote_host, remote_port = request.transport.get_extra_info('peername')
-    LOG.info("delaying request from %s:%d by %s seconds.", remote_host, remote_port, delay)
+    LOG.info("delaying request from %s:%d by %s seconds.",
+             remote_host, remote_port, round(delay, 1))
 
     await stream.write(json.dumps({
         'delay': delay,
