@@ -1,5 +1,17 @@
 Usage
 =====
+
+### Client
+```
+$ python client.py http://localhost:8080 -p 10
+INFO:__main__:Starting 10 parallel requests to 'http://localhost:8080'
+INFO:__main__:HTTP 200 after 0.434459924697876 seconds
+INFO:__main__:HTTP 200 after 0.7006819248199463 seconds
+INFO:__main__:HTTP 200 after 1.2724850177764893 seconds
+...
+```
+
+### Server
 ```
 $ python sample.py
 ======== Running on http://127.0.0.1:8080 ========
