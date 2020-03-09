@@ -47,7 +47,8 @@ def main():
         parser.print_help()
         sys.exit(2)
 
-    asyncio.run(make_requests(args.url, args.parallel))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(make_requests(args.url, args.parallel))
 
 
 if __name__ == '__main__':
