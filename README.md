@@ -13,8 +13,8 @@ INFO:__main__:HTTP 200 after 1.2724850177764893 seconds
 
 ### Server
 ```
-$ python sample.py
-======== Running on http://127.0.0.1:8080 ========
+$ python sample.py --port 8000 --bind 0.0.0.0
+======== Running on http://0.0.0.0:8000 ========
 (Press CTRL+C to quit)
 INFO:__main__:delaying request from 127.0.0.1:52968 by 22.23659268095938 seconds.
 INFO:__main__:delaying request from 127.0.0.1:52969 by 6.2113996286454745 seconds.
