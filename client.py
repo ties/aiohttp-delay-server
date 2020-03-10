@@ -23,6 +23,8 @@ async def perform_request(session: aiohttp.ClientSession,
 
             delta = time.time() - t0
             LOG.info("[%d] HTTP %d after %s seconds", i, resp.status, delta)
+    except aiohttp.client_exceptions.ClientConnectorError as e:
+        LOG.info("[%d] %s", i, e)
     finally:
         sem.release()
 
