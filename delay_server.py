@@ -8,18 +8,19 @@ import time
 
 from aiohttp import web
 
-# Mean delay
-MEAN_DELAY = 60
-
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
+
 LOG.setLevel(logging.INFO)
 
 
-async def delay_response(request):
+async def delay_response(mean_delay: int, max_delay: int, request):
     stream = web.StreamResponse()
     await stream.prepare(request)
-    delay = random.expovariate(1/MEAN_DELAY)
+    delay = random.expovariate(1/mean_delay)
+    # If max_delay is set, clamp to it.
+    if max_delay:
+        delay = min(delay, max_delay)
 
     remote_host, remote_port = request.transport.get_extra_info('peername')
     LOG.info("delaying request from %s:%d by %s seconds.",
@@ -46,6 +47,11 @@ def main():
                         help="Port to bind to.")
     parser.add_argument("--bind", default="127.0.0.1",
                         help="IP address(es) to bind to.")
+    parser.add_argument("--max-delay", type=int,
+                        help="Maximum delay (in seconds)")
+    parser.add_argument("--mean-delay", type=int,
+                        default=30,
+                        help="Mean delay (in seconds)")
 
 
     args = parser.parse_args()
@@ -54,7 +60,7 @@ def main():
         sys.exit(2)
 
     app = web.Application()
-    app.router.add_get('/', delay_response)
+    app.router.add_get('/', lambda request: delay_response(args.mean_delay, args.max_delay, request))
     web.run_app(app, host=args.bind, port=args.port)
 
 
