@@ -4,18 +4,20 @@ import asyncio
 import logging
 import time
 
+from typing import Optional
+
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 
-async def perform_request(session: aiohttp.ClientSession,
+async def perform_request(conn: Optional[aiohttp.TCPConnector],
                           i: int,
                           sem: asyncio.Semaphore,
                           url: str):
     t0 = time.time()
     try:
-        async with session.get(url) as resp:
+        async with aiohttp.request('get', url, connector=conn) as resp:
             # Read wjhole response without buffering.
             chunk = True
             while chunk:
@@ -39,11 +41,10 @@ async def make_requests(url, k: int, keepalive: bool) -> None:
     # TCPConnector supports keepalive.
     connector = aiohttp.TCPConnector() if keepalive else None
 
-    async with aiohttp.ClientSession(connector=connector) as session:
-        while True:
-            await sem.acquire()
-            loop.create_task(perform_request(session, i, sem, url))
-            i += 1
+    while True:
+        await sem.acquire()
+        loop.create_task(perform_request(connector, i, sem, url))
+        i += 1
 
 
 def main():
