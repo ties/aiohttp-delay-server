@@ -29,14 +29,17 @@ async def perform_request(session: aiohttp.ClientSession,
         sem.release()
 
 
-async def make_requests(url, k) -> None:
+async def make_requests(url, k: int, keepalive: bool) -> None:
     LOG.info("Starting %d parallel requests to '%s'", k, url)
     sem = asyncio.Semaphore(k)
     loop = asyncio.get_event_loop()
 
     i = 0
 
-    async with aiohttp.ClientSession() as session:
+    # TCPConnector supports keepalive.
+    connector = aiohttp.TCPConnector() if keepalive else None
+
+    async with aiohttp.ClientSession(connector=connector) as session:
         while True:
             await sem.acquire()
             loop.create_task(perform_request(session, i, sem, url))
@@ -48,14 +51,18 @@ def main():
     parser.add_argument("url", help="URL to make requests to.")
     parser.add_argument("-p", "--parallel", default=2, type=int,
                         help="Number of parallel requests (> 0)")
+    parser.add_argument("-K", "--keepalive", action='store_true',
+                        help="Use HTTP keepalive")
 
     args = parser.parse_args()
     if args.parallel <= 0:
         parser.print_help()
         sys.exit(2)
 
+    reqs = make_requests(args.url, args.parallel, args.keepalive)
+
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(make_requests(args.url, args.parallel))
+    loop.run_until_complete(reqs)
 
 
 if __name__ == '__main__':
